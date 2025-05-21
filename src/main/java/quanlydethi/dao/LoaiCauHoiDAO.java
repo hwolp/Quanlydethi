@@ -72,7 +72,11 @@ public class LoaiCauHoiDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // In chi tiết lỗi ra console (dev environment)
+            // Kiểm tra lỗi ràng buộc UNIQUE KEY (tên loại câu hỏi đã tồn tại)
+            if (e.getMessage().contains("UNIQUE KEY constraint") || e.getMessage().contains("Duplicate entry")) { // Điều chỉnh tùy theo CSDL
+                System.err.println("Lỗi: Tên loại câu hỏi '" + loaiCauHoi.getTenLoai() + "' đã tồn tại.");
+            }
         }
         return rowInserted;
     }
@@ -90,7 +94,11 @@ public class LoaiCauHoiDAO {
 
             rowUpdated = ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // In chi tiết lỗi ra console (dev environment)
+            // Kiểm tra lỗi ràng buộc UNIQUE KEY (tên loại câu hỏi bị trùng khi cập nhật)
+             if (e.getMessage().contains("UNIQUE KEY constraint") || e.getMessage().contains("Duplicate entry")) { // Điều chỉnh tùy theo CSDL
+                System.err.println("Lỗi: Tên loại câu hỏi '" + loaiCauHoi.getTenLoai() + "' cập nhật bị trùng với một loại câu hỏi khác.");
+            }
         }
         return rowUpdated;
     }
@@ -105,8 +113,9 @@ public class LoaiCauHoiDAO {
             ps.setInt(1, maLoaiCauHoi);
             rowDeleted = ps.executeUpdate() > 0;
         } catch (SQLException e) {
-             if (e.getMessage().contains("REFERENCE constraint")) {
-                System.err.println("Lỗi: Không thể xóa loại câu hỏi này vì đang được tham chiếu.");
+            // Kiểm tra lỗi khóa ngoại nếu LoaiCauHoi đang được tham chiếu
+            if (e.getMessage().contains("REFERENCE constraint") || e.getMessage().contains("foreign key constraint fails")) { // Điều chỉnh tùy theo CSDL
+                System.err.println("Lỗi: Không thể xóa loại câu hỏi này vì nó đang được sử dụng (tham chiếu) ở bảng khác.");
             } else {
                 e.printStackTrace();
             }

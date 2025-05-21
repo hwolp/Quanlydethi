@@ -40,12 +40,17 @@ public class TrinhDo {
         this.moTa = moTa;
     }
 
+//    @Override
+//    public String toString() {
+//        return "TrinhDo{" +
+//               "maTrinhDo=" + maTrinhDo +
+//               ", tenTrinhDo='" + tenTrinhDo + '\'' +
+//               ", moTa='" + moTa + '\'' +
+//               '}';
+//    }
+
     @Override
     public String toString() {
-        return "TrinhDo{" +
-               "maTrinhDo=" + maTrinhDo +
-               ", tenTrinhDo='" + tenTrinhDo + '\'' +
-               ", moTa='" + moTa + '\'' +
-               '}';
+        return tenTrinhDo; // Giả sử thuộc tính tên là 'tenLoai'
     }
 }

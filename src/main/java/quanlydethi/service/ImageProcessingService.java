@@ -36,7 +36,7 @@ public class ImageProcessingService {
         loadApiKey();
     }
 
-    // Constructor và loadApiKey giữ nguyên như code bạn đã cung cấp
+
     public ImageProcessingService(String apiKey, String modelName) {
         if (apiKey == null || apiKey.trim().isEmpty()) {
              System.err.println("CẢNH BÁO: Gemini API Key được truyền vào không hợp lệ.");

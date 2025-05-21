@@ -31,6 +31,7 @@ public class TrinhDoDAO {
         return danhSachTrinhDo;
     }
 
+
     public TrinhDo getTrinhDoById(int maTrinhDo) {
         String sql = "SELECT MaTrinhDo, TenTrinhDo, MoTa FROM dbo.TrinhDo WHERE MaTrinhDo = ?";
         TrinhDo td = null;

@@ -1,4 +1,4 @@
-package quanlydethi.service; // Hoặc package bạn muốn đặt lớp Exception
+package quanlydethi.service; 
 
 public class ImageProcessingException extends Exception {
 

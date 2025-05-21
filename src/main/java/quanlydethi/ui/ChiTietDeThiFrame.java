@@ -20,7 +20,6 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 // import java.util.Map; // Không dùng map cache trong phiên bản này
 // import java.util.HashMap; // Không dùng map cache trong phiên bản này
-import java.util.concurrent.ExecutionException;
 
 
 public class ChiTietDeThiFrame extends JFrame {

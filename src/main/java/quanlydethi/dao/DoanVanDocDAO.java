@@ -91,6 +91,41 @@ public class DoanVanDocDAO {
         }
         return rowInserted;
     }
+    public boolean addDoanVanDoc(DoanVanDoc doanVanDoc, Connection conn) throws SQLException {
+        String sql = "INSERT INTO dbo.DoanVanDoc (NoiDungDoanVan, MaTrinhDo) VALUES (?, ?)";
+        boolean rowInserted = false;
+        PreparedStatement ps = null;
+        ResultSet generatedKeys = null;
+        try {
+            ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+            ps.setString(1, doanVanDoc.getNoiDungDoanVan());
+            if (doanVanDoc.getMaTrinhDo() != null) {
+                ps.setInt(2, doanVanDoc.getMaTrinhDo());
+            } else {
+                ps.setNull(2, Types.INTEGER);
+            }
+
+            int affectedRows = ps.executeUpdate();
+            rowInserted = affectedRows > 0;
+
+            if (rowInserted) {
+                generatedKeys = ps.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    doanVanDoc.setMaDoanVan(generatedKeys.getInt(1)); // Cập nhật ID vào đối tượng
+                } else {
+                    // Nếu không có key được trả về dù insert thành công, có thể là vấn đề cấu hình DB hoặc driver
+                    throw new SQLException("Thêm đoạn văn thành công nhưng không lấy được ID tự tăng.");
+                }
+            }
+        } finally {
+            // Đóng ResultSet và PreparedStatement, Connection sẽ được đóng bởi lớp gọi (Service).
+            if (generatedKeys != null) try { generatedKeys.close(); } catch (SQLException e) { e.printStackTrace(); }
+            if (ps != null) try { ps.close(); } catch (SQLException e) { e.printStackTrace(); }
+        }
+        return rowInserted;
+    }
+
 
     public boolean updateDoanVanDoc(DoanVanDoc doanVanDoc) {
         String sql = "UPDATE dbo.DoanVanDoc SET NoiDungDoanVan = ?, MaTrinhDo = ? WHERE MaDoanVan = ?";

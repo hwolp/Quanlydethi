@@ -1,32 +1,35 @@
 package quanlydethi.ui;
 
 import quanlydethi.model.DeThi;
-import quanlydethi.model.TrinhDo; // Cần để hiển thị tên trình độ
+import quanlydethi.model.TrinhDo;
 import quanlydethi.dao.DeThiDAO;
-import quanlydethi.dao.TrinhDoDAO; // Cần để lấy tên trình độ
-import quanlydethi.service.DeThiService; // Có thể dùng service nếu có logic phức tạp hơn
+import quanlydethi.dao.TrinhDoDAO;
+// import quanlydethi.service.DeThiService; // Not directly used in this frame's current logic
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableRowSorter;
+// import javax.swing.table.TableRowSorter; // Not explicitly used but autoCreateRowSorter is true
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.sql.Timestamp;
+// import java.sql.Timestamp; // Not directly used
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 public class DanhSachDeThiFrame extends JFrame {
     private JTable tableDeThi;
     private DefaultTableModel tableModelDeThi;
     private JButton btnXemChiTiet;
     private JButton btnLamMoi;
+    private JButton btnQuayLaiHome;
+    private JButton btnXoaDeThi; // NÚT MỚI ĐỂ XÓA
 
     private DeThiDAO deThiDAO;
-    private TrinhDoDAO trinhDoDAO; // Để lấy thông tin Trình Độ
-    private Map<Integer, String> mapTenTrinhDo; // Cache tên trình độ
+    private TrinhDoDAO trinhDoDAO;
+    private Map<Integer, String> mapTenTrinhDo;
 
     public DanhSachDeThiFrame() {
         this.deThiDAO = new DeThiDAO();
@@ -34,41 +37,46 @@ public class DanhSachDeThiFrame extends JFrame {
         this.mapTenTrinhDo = new HashMap<>();
 
         setTitle("Danh Sách Đề Thi Đã Tạo");
-        setSize(800, 500);
+        setSize(850, 500); // Tăng chiều rộng một chút để chứa nút mới
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
         initComponents();
-        loadTenTrinhDoCache(); // Load tên trình độ trước
+        loadTenTrinhDoCache();
         loadDanhSachDeThi();
         initActionListeners();
     }
 
     private void initComponents() {
-        // Table Model
         tableModelDeThi = new DefaultTableModel(
             new Object[]{"Mã Đề", "Tên Đề Thi", "Trình Độ", "Ngày Tạo", "Thời Gian (phút)", "Ngẫu Nhiên?"}, 0
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // Không cho phép sửa trực tiếp trên bảng
+                return false;
             }
         };
         tableDeThi = new JTable(tableModelDeThi);
         tableDeThi.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tableDeThi.setFillsViewportHeight(true);
-        tableDeThi.setAutoCreateRowSorter(true); // Cho phép sắp xếp cột
+        tableDeThi.setAutoCreateRowSorter(true);
 
         JScrollPane scrollPane = new JScrollPane(tableDeThi);
 
-        // Buttons Panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        btnXemChiTiet = new JButton("Xem Chi Tiết Đề Thi");
-        btnXemChiTiet.setEnabled(false); // Chỉ enable khi có đề được chọn
-        btnLamMoi = new JButton("Làm Mới Danh Sách");
+        btnQuayLaiHome = new JButton("Quay lại Home");
+        btnLamMoi = new JButton("Làm Mới");
+        btnXemChiTiet = new JButton("Xem Chi Tiết");
+        btnXemChiTiet.setEnabled(false);
+        btnXoaDeThi = new JButton("Xóa Đề Thi"); // KHỞI TẠO NÚT MỚI
+        btnXoaDeThi.setEnabled(false); // Ban đầu vô hiệu hóa
+
+        buttonPanel.add(btnQuayLaiHome);
         buttonPanel.add(btnLamMoi);
+        buttonPanel.add(btnXoaDeThi); // THÊM NÚT XÓA VÀO PANEL
         buttonPanel.add(btnXemChiTiet);
+
 
         add(scrollPane, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
@@ -76,6 +84,7 @@ public class DanhSachDeThiFrame extends JFrame {
 
     private void loadTenTrinhDoCache() {
         List<TrinhDo> listTrinhDo = trinhDoDAO.getAllTrinhDo();
+        mapTenTrinhDo.clear();
         if (listTrinhDo != null) {
             for (TrinhDo td : listTrinhDo) {
                 mapTenTrinhDo.put(td.getMaTrinhDo(), td.getTenTrinhDo());
@@ -84,13 +93,13 @@ public class DanhSachDeThiFrame extends JFrame {
     }
 
     private void loadDanhSachDeThi() {
-        tableModelDeThi.setRowCount(0); // Xóa dữ liệu cũ
+        tableModelDeThi.setRowCount(0);
         List<DeThi> danhSach = deThiDAO.getAllDeThi();
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
         if (danhSach != null) {
             for (DeThi dt : danhSach) {
-                String tenTrinhDo = dt.getMaTrinhDo() != null ? mapTenTrinhDo.getOrDefault(dt.getMaTrinhDo(), "N/A") : "N/A";
+                String tenTrinhDo = dt.getMaTrinhDo() != null ? mapTenTrinhDo.getOrDefault(dt.getMaTrinhDo(), "N/A (ID: " + dt.getMaTrinhDo() + ")") : "N/A";
                 String ngayTao = dt.getNgayTaoDe() != null ? sdf.format(dt.getNgayTaoDe()) : "N/A";
                 String thoiGianLamBai = dt.getThoiGianLamBaiPhut() != null ? dt.getThoiGianLamBaiPhut().toString() : "Không giới hạn";
                 
@@ -104,28 +113,42 @@ public class DanhSachDeThiFrame extends JFrame {
                 });
             }
         }
-        if (tableDeThi.getRowCount() > 0) {
-            tableDeThi.setRowSelectionInterval(0,0); // Tự động chọn dòng đầu tiên
-             btnXemChiTiet.setEnabled(true);
-        } else {
+        // Cập nhật trạng thái các nút dựa trên việc có dòng nào được chọn không
+        updateButtonStates();
+    }
+    
+    private void updateButtonStates() {
+        int selectedRow = tableDeThi.getSelectedRow();
+        boolean isRowSelected = (selectedRow != -1);
+        btnXemChiTiet.setEnabled(isRowSelected);
+        btnXoaDeThi.setEnabled(isRowSelected);
+
+        // Tự động chọn dòng đầu tiên nếu bảng có dữ liệu và chưa có dòng nào được chọn
+        if (tableDeThi.getRowCount() > 0 && selectedRow == -1) {
+            tableDeThi.setRowSelectionInterval(0, 0);
+            // btnXemChiTiet.setEnabled(true); // Không cần vì listener sẽ xử lý
+            // btnXoaDeThi.setEnabled(true);
+        } else if (tableDeThi.getRowCount() == 0) {
             btnXemChiTiet.setEnabled(false);
+            btnXoaDeThi.setEnabled(false);
         }
     }
 
+
     private void initActionListeners() {
         tableDeThi.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting() && tableDeThi.getSelectedRow() != -1) {
-                btnXemChiTiet.setEnabled(true);
-            } else if (tableDeThi.getSelectedRow() == -1){
-                 btnXemChiTiet.setEnabled(false);
+            if (!e.getValueIsAdjusting()) {
+                updateButtonStates(); // Cập nhật trạng thái nút khi lựa chọn thay đổi
             }
         });
 
-        btnLamMoi.addActionListener(e -> loadDanhSachDeThi());
+        btnLamMoi.addActionListener(e -> {
+            loadTenTrinhDoCache();
+            loadDanhSachDeThi();
+        });
 
         btnXemChiTiet.addActionListener(e -> moFrameChiTietDeThi());
         
-        // Xử lý double-click trên bảng để xem chi tiết
         tableDeThi.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent mouseEvent) {
                 JTable table =(JTable) mouseEvent.getSource();
@@ -136,20 +159,84 @@ public class DanhSachDeThiFrame extends JFrame {
                 }
             }
         });
+
+        btnQuayLaiHome.addActionListener(e -> quayLaiHomeUI());
+        
+        // SỰ KIỆN CHO NÚT XÓA ĐỀ THI
+        btnXoaDeThi.addActionListener(e -> xuLyXoaDeThi());
     }
 
     private void moFrameChiTietDeThi() {
-        int selectedRow = tableDeThi.getSelectedRow();
-        if (selectedRow != -1) {
-            // Lấy MaDeThi từ dòng đã chọn (cần convert về model index nếu có sort)
-            int modelRow = tableDeThi.convertRowIndexToModel(selectedRow);
-            int maDeThi = (Integer) tableModelDeThi.getValueAt(modelRow, 0); // Cột 0 là MaDeThi
+        int selectedRowView = tableDeThi.getSelectedRow();
+        if (selectedRowView != -1) {
+            int modelRow = tableDeThi.convertRowIndexToModel(selectedRowView);
+            int maDeThiValue = (Integer) tableModelDeThi.getValueAt(modelRow, 0);
             
-            // Mở Frame/Dialog chi tiết đề thi (sẽ tạo ở Bước 2)
-            ChiTietDeThiFrame chiTietFrame = new ChiTietDeThiFrame(maDeThi);
+            ChiTietDeThiFrame chiTietFrame = new ChiTietDeThiFrame(maDeThiValue);
             chiTietFrame.setVisible(true);
         } else {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn một đề thi để xem chi tiết.", "Chưa chọn đề", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    private void quayLaiHomeUI() {
+        this.dispose(); 
+        SwingUtilities.invokeLater(() -> {
+            HomeIU homeFrame = new HomeIU(); // Thay HomeUI bằng tên lớp Frame chính của bạn
+            homeFrame.setVisible(true);
+        });
+    }
+
+    // PHƯƠNG THỨC MỚI ĐỂ XỬ LÝ XÓA ĐỀ THI
+    private void xuLyXoaDeThi() {
+        int selectedRowView = tableDeThi.getSelectedRow();
+        if (selectedRowView == -1) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn một đề thi để xóa.", "Chưa chọn đề", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int modelRow = tableDeThi.convertRowIndexToModel(selectedRowView);
+        int maDeThiValue = (Integer) tableModelDeThi.getValueAt(modelRow, 0);
+        String tenDeThi = (String) tableModelDeThi.getValueAt(modelRow, 1);
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Bạn có chắc chắn muốn xóa đề thi:\n" + tenDeThi + " (Mã: " + maDeThiValue + ")?\n" +
+                "Tất cả các câu hỏi liên kết với đề thi này cũng sẽ bị xóa khỏi đề (do ON DELETE CASCADE).",
+                "Xác nhận xóa",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            // Thực hiện xóa trong SwingWorker để không làm đơ UI nếu DAO mất thời gian
+            SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+                @Override
+                protected Boolean doInBackground() throws Exception {
+                    return deThiDAO.deleteDeThi(maDeThiValue);
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        boolean success = get();
+                        if (success) {
+                            JOptionPane.showMessageDialog(DanhSachDeThiFrame.this,
+                                    "Đã xóa thành công đề thi: " + tenDeThi,
+                                    "Xóa Thành Công", JOptionPane.INFORMATION_MESSAGE);
+                            loadDanhSachDeThi(); // Tải lại danh sách sau khi xóa
+                        } else {
+                            JOptionPane.showMessageDialog(DanhSachDeThiFrame.this,
+                                    "Xóa đề thi thất bại. Có thể đề thi đang được tham chiếu hoặc có lỗi CSDL.\nXem console log để biết thêm chi tiết.",
+                                    "Xóa Thất Bại", JOptionPane.ERROR_MESSAGE);
+                        }
+                    } catch (InterruptedException | ExecutionException ex) {
+                        JOptionPane.showMessageDialog(DanhSachDeThiFrame.this,
+                                "Lỗi trong quá trình xóa: " + ex.getMessage(),
+                                "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        ex.printStackTrace();
+                    }
+                }
+            };
+            worker.execute();
         }
     }
 

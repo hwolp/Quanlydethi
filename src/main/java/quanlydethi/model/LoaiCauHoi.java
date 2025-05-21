@@ -40,12 +40,17 @@ public class LoaiCauHoi {
         this.moTa = moTa;
     }
 
+//    @Override
+//    public String toString() {
+//        return "LoaiCauHoi{" +
+//               "maLoaiCauHoi=" + maLoaiCauHoi +
+//               ", tenLoai='" + tenLoai + '\'' +
+//               ", moTa='" + moTa + '\'' +
+//               '}';
+//    }
+
     @Override
     public String toString() {
-        return "LoaiCauHoi{" +
-               "maLoaiCauHoi=" + maLoaiCauHoi +
-               ", tenLoai='" + tenLoai + '\'' +
-               ", moTa='" + moTa + '\'' +
-               '}';
+        return tenLoai; // Giả sử thuộc tính tên là 'tenLoai'
     }
 }
